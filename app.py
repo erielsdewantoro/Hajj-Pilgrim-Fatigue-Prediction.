@@ -21,7 +21,7 @@ Data ini telah diagregasi dan dibersihkan dari noise, siap untuk dianalisis.
 
 # ID file Google Drive (Ganti dengan ID file .parquet kamu)
 # Link kamu: https://drive.google.com/file/d/THIS_IS_THE_ID/view?usp=sharing
-FILE_ID = "https://drive.google.com/file/d/1zPbNjbejFsEcG7BeR5bTpCTOMTHujgvL/view?usp=sharing" 
+FILE_ID = "1zPbNjbejFsEcG7BeR5bTpCTOMTHujgvL"
 FILE_PATH = "data_bersih_agregasi.parquet"
 
 # Fungsi untuk mengunduh file jika belum ada
