@@ -41,29 +41,7 @@ def download_data_new(file_id, output_path):
     else:
         print("Data sudah ada, tidak perlu mengunduh.")
 
-# ... (sisanya tetap sama) ...
-# Fungsi untuk memuat data (dengan cache agar cepat)
-@st.cache_data
-def load_data(path):
-    try:
-        data = pd.read_parquet(path)
-        return data
-    except Exception as e:
-        st.error(f"Error memuat data: {e}")
-        # Coba hapus file dan unduh ulang jika korup
-        if os.path.exists(path):
-            os.remove(path)
-        st.write("Mencoba mengunduh ulang data...")
-        download_data_new(FILE_ID, FILE_PATH) # <-- Panggil fungsi baru
-        data = pd.read_parquet(path)
-        return data
 
-# Unduh dan muat data
-download_data_new(FILE_ID, FILE_PATH) # <-- Panggil fungsi baru
-df = load_data(FILE_PATH)
-
-st.success(f"✅ Data bersih ({df.shape[0]} baris) berhasil dimuat.")
-# --- SELESAI PERUBAHAN ---
 
 # Fungsi untuk memuat data (dengan cache agar cepat)
 @st.cache_data
