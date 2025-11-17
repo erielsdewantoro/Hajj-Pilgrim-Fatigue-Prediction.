@@ -17,21 +17,53 @@ Aplikasi ini memvisualisasikan data bersih (4.3 juta baris) dari proyek *data sc
 Data ini telah diagregasi dan dibersihkan dari noise, siap untuk dianalisis.
 """)
 
-# --- Bagian 1: Pemuatan Data dari Google Drive ---
+# --- Bagian 1: Pemuatan Data dari Google Drive (METODE BARU) ---
 
-# ID file Google Drive (Ganti dengan ID file .parquet kamu)
-# Link kamu: https://drive.google.com/file/d/THIS_IS_THE_ID/view?usp=sharing
-FILE_ID = "1zPbNjbejFsEcG7BeR5bTpCTOMTHujgvL"
-FILE_PATH = "data_bersih_agregasi.parquet"
+FILE_ID = "1zPbNjbejFsEcG7BeR5bTpCTOMTHujgvL" # <-- ID File kamu
+FILE_PATH = "data_bersih_agregasi.parquet"  # Nama file untuk disimpan
 
 # Fungsi untuk mengunduh file jika belum ada
-def download_data(file_id, output_path):
+def download_data_new(file_id, output_path):
     if not os.path.exists(output_path):
         with st.spinner(f"Mengunduh data besar ({output_path})... Ini mungkin perlu 1-2 menit..."):
-            url = f'https://drive.google.com/uc?id={file_id}'
-            gdown.download(url, output_path, quiet=False)
+            try:
+                # Kita gunakan 'wget' yang lebih tangguh
+                import wget
+                print(f"\nMenggunakan wget untuk mengunduh...")
+                # Ini adalah URL format khusus untuk download file besar
+                url = f'https://drive.google.com/uc?export=download&id={file_id}'
+                wget.download(url, out=output_path)
+                print(f"\nDownload selesai.")
+            except Exception as e:
+                st.error(f"Download gagal: {e}")
+                st.error("Pastikan file memiliki izin 'Siapa saja yang memiliki link'.")
+                raise e
     else:
         print("Data sudah ada, tidak perlu mengunduh.")
+
+# ... (sisanya tetap sama) ...
+# Fungsi untuk memuat data (dengan cache agar cepat)
+@st.cache_data
+def load_data(path):
+    try:
+        data = pd.read_parquet(path)
+        return data
+    except Exception as e:
+        st.error(f"Error memuat data: {e}")
+        # Coba hapus file dan unduh ulang jika korup
+        if os.path.exists(path):
+            os.remove(path)
+        st.write("Mencoba mengunduh ulang data...")
+        download_data_new(FILE_ID, FILE_PATH) # <-- Panggil fungsi baru
+        data = pd.read_parquet(path)
+        return data
+
+# Unduh dan muat data
+download_data_new(FILE_ID, FILE_PATH) # <-- Panggil fungsi baru
+df = load_data(FILE_PATH)
+
+st.success(f"✅ Data bersih ({df.shape[0]} baris) berhasil dimuat.")
+# --- SELESAI PERUBAHAN ---
 
 # Fungsi untuk memuat data (dengan cache agar cepat)
 @st.cache_data
