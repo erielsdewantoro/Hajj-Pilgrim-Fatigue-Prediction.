@@ -19,7 +19,7 @@ Data ini telah diagregasi dan dibersihkan dari noise, siap untuk dianalisis.
 
 # --- Bagian 1: Pemuatan Data dari Google Drive (METODE BARU) ---
 
-FILE_ID = "1zPbNjbejFsEcG7BeR5bTpCTOMTHujgvL" # <-- ID File kamu
+FILE_ID = "1prQQkSUDcYltzPCtX5wcJmr4JbR9WPXS" # <-- ID File kamu
 FILE_PATH = "data_bersih_agregasi.parquet"  # Nama file untuk disimpan
 
 # Fungsi untuk mengunduh file jika belum ada
