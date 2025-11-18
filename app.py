@@ -1,11 +1,11 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import wget  # <-- Menggunakan wget
-import os
-import joblib # <-- Tambahkan ini untuk memuat model .pkl
-import lightgbm # <-- Tambahkan ini agar .pkl bisa dibaca
-import sklearn # <-- Tambahkan ini agar .pkl bisa dibaca
+import wget 
+import os 
+import joblib 
+import lightgbm 
+import sklearn
 
 # --- Konfigurasi Halaman & Judul ---
 st.set_page_config(
