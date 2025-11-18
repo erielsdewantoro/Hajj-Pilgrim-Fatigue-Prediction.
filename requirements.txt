@@ -1,6 +1,6 @@
 streamlit
-pandas
 plotly-express
-scikit-learn
-lightgbm
 wget
+pandas==2.2.2
+scikit-learn==1.6.1
+lightgbm==4.6.0
