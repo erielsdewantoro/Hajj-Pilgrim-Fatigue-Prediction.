@@ -129,12 +129,3 @@ Proyek ini dibuat sebagai *final project* untuk menganalisis dan memprediksi kel
 - **Model:** LightGBM (LGBM) dipilih sebagai model terbaik (F1-Score 0.72) setelah mengalahkan Logistic Regression dan Random Forest.
 - **Notebook:** [GANTI DENGAN LINK KE NOTEBOOK GITHUB ANDA]
 """)
-
-# Coba muat model .pkl untuk memastikan library ada
-try:
-    joblib.load('model_pemenang_LGBM.pkl')
-    st.sidebar.success("Model .pkl berhasil dimuat.")
-except FileNotFoundError:
-    st.sidebar.warning("File model 'model_pemenang_LGBM.pkl' tidak ditemukan di repositori.")
-except Exception as e:
-    st.sidebar.error(f"Error memuat model .pkl: {e}")
