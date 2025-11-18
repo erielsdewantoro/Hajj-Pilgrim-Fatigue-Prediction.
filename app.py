@@ -55,12 +55,12 @@ def load_data(path):
         if os.path.exists(path):
             os.remove(path)
         st.write("Mencoba mengunduh ulang data...")
-        download_data(FILE_ID, FILE_PATH)
+        download_data_new(FILE_ID, FILE_PATH)
         data = pd.read_parquet(path)
         return data
 
 # Unduh dan muat data
-download_data(FILE_ID, FILE_PATH)
+download_data_new(FILE_ID, FILE_PATH)
 df = load_data(FILE_PATH)
 
 st.success(f"✅ Data bersih ({df.shape[0]} baris) berhasil dimuat.")
