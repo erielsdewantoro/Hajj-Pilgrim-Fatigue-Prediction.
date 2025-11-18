@@ -1,8 +1,11 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import gdown  # Library untuk download dari Google Drive
-import os # Untuk cek apakah file ada
+import wget  # <-- Menggunakan wget
+import os
+import joblib # <-- Tambahkan ini untuk memuat model .pkl
+import lightgbm # <-- Tambahkan ini agar .pkl bisa dibaca
+import sklearn # <-- Tambahkan ini agar .pkl bisa dibaca
 
 # --- Konfigurasi Halaman & Judul ---
 st.set_page_config(
@@ -13,24 +16,22 @@ st.set_page_config(
 
 st.title("🕋 Dashboard Analisis Prediktif Kelelahan Jemaah Haji")
 st.write("""
-Aplikasi ini memvisualisasikan data bersih (4.3 juta baris) dari proyek *data science* untuk memprediksi kelelahan jemaah. 
-Data ini telah diagregasi dan dibersihkan dari noise, siap untuk dianalisis.
+Dashboard ini memvisualisasikan **sampel 50.000 baris** dari dataset bersih proyek. 
+Data asli (4.3 juta baris) telah diagregasi dan dibersihkan dari noise.
 """)
 
-# --- Bagian 1: Pemuatan Data dari Google Drive (METODE BARU) ---
+# --- Bagian 1: Pemuatan Data dari Google Drive ---
 
-FILE_ID = "1prQQkSUDcYltzPCtX5wcJmr4JbR9WPXS" # <-- ID File kamu
-FILE_PATH = "data_bersih_SAMPEL_50k.parquet"  # Nama file untuk disimpan
+# ID file untuk file SAMPEL 50k baris
+FILE_ID = "1prQQkSUDcYltzPCtX5wcJmr4JbR9WPXS" 
+FILE_PATH = "data_bersih_SAMPEL_50k.parquet"
 
 # Fungsi untuk mengunduh file jika belum ada
 def download_data_new(file_id, output_path):
     if not os.path.exists(output_path):
-        with st.spinner(f"Mengunduh data besar ({output_path})... Ini mungkin perlu 1-2 menit..."):
+        with st.spinner(f"Mengunduh data sampel ({output_path})... Ini hanya sebentar..."):
             try:
-                # Kita gunakan 'wget' yang lebih tangguh
-                import wget
                 print(f"\nMenggunakan wget untuk mengunduh...")
-                # Ini adalah URL format khusus untuk download file besar
                 url = f'https://drive.google.com/uc?export=download&id={file_id}'
                 wget.download(url, out=output_path)
                 print(f"\nDownload selesai.")
@@ -41,8 +42,6 @@ def download_data_new(file_id, output_path):
     else:
         print("Data sudah ada, tidak perlu mengunduh.")
 
-
-
 # Fungsi untuk memuat data (dengan cache agar cepat)
 @st.cache_data
 def load_data(path):
@@ -51,24 +50,27 @@ def load_data(path):
         return data
     except Exception as e:
         st.error(f"Error memuat data: {e}")
-        # Coba hapus file dan unduh ulang jika korup
         if os.path.exists(path):
             os.remove(path)
         st.write("Mencoba mengunduh ulang data...")
-        download_data_new(FILE_ID, FILE_PATH)
+        # MEMANGGIL FUNGSI YANG BENAR:
+        download_data_new(FILE_ID, FILE_PATH) 
         data = pd.read_parquet(path)
         return data
 
-# Unduh dan muat data
-download_data_new(FILE_ID, FILE_PATH)
+# --- Eksekusi Pemuatan Data ---
+# (Ini adalah panggilan utama)
+download_data_new(FILE_ID, FILE_PATH) # <-- MEMANGGIL FUNGSI YANG BENAR
 df = load_data(FILE_PATH)
+# --- Selesai Pemuatan Data ---
 
-st.success(f"✅ Data bersih ({df.shape[0]} baris) berhasil dimuat.")
+
+st.success(f"✅ Data sampel ({df.shape[0]} baris) berhasil dimuat.")
 
 # --- Bagian 2: Tampilkan Metrik Utama ---
-st.header("Metrik Utama Dataset")
+st.header("Metrik Utama Dataset (dari Sampel 50k)")
 col1, col2, col3 = st.columns(3)
-col1.metric("Total Baris Data (Agregasi)", f"{df.shape[0]:,}")
+col1.metric("Total Baris Data (Sampel)", f"{df.shape[0]:,}")
 col2.metric("Total Fitur (Sensor)", f"{df.shape[1] - 4}") # Kurangi id, createdAt, target
 col3.metric("Jumlah Peserta (ID Unik)", f"{df['id'].nunique()}")
 
@@ -76,17 +78,14 @@ col3.metric("Jumlah Peserta (ID Unik)", f"{df['id'].nunique()}")
 # --- Bagian 3: Visualisasi Interaktif ---
 st.header("Eksplorasi Data Interaktif")
 
-# Ambil sampel kecil untuk visualisasi agar lebih cepat
-if st.checkbox("Gunakan sampel data (50.000 baris) agar dashboard lebih cepat"):
-    df_sample = df.sample(50000, random_state=42)
-else:
-    df_sample = df.copy()
+# Kita sudah pakai sampel, jadi df_sample = df
+df_sample = df.copy()
 
 # 1. Distribusi Target
 st.subheader("Distribusi Target (Lelah vs Tidak Lelah)")
 target_dist = df_sample['y_binary'].value_counts().reset_index()
 target_dist['y_binary'] = target_dist['y_binary'].map({0: '0 (Tidak Lelah)', 1: '1 (Lelah)'})
-fig1 = px.pie(target_dist, names='y_binary', values='count', title="Proporsi Jemaah Lelah vs Tidak Lelah")
+fig1 = px.pie(target_dist, names='y_binary', values='count', title="Proporsi Jemaah Lelah vs Tidak Lelah (di Sampel)")
 st.plotly_chart(fig1, use_container_width=True)
 
 # 2. Scatter Plot (Hubungan Antar Sensor)
@@ -118,14 +117,24 @@ st.plotly_chart(fig3, use_container_width=True)
 
 # --- Bagian 4: Tampilkan Sampel Data ---
 st.header("Sampel Data Bersih")
-st.write("Ini adalah 100 baris pertama dari data bersih yang telah diagregasi.")
+st.write("Ini adalah 100 baris pertama dari data sampel 50k.")
 st.dataframe(df.head(100))
 
+# --- Sidebar ---
 st.sidebar.header("Tentang Proyek")
 st.sidebar.info("""
 Proyek ini dibuat sebagai *final project* untuk menganalisis dan memprediksi kelelahan jemaah haji.
 
-- **Data:** 5 juta baris data mentah dari 17 peserta, dibersihkan menjadi 4.3 juta baris.
+- **Data:** Sampel 50k baris dari 4.3 juta data bersih.
 - **Model:** LightGBM (LGBM) dipilih sebagai model terbaik (F1-Score 0.72) setelah mengalahkan Logistic Regression dan Random Forest.
-- **Notebook:** [Link ke GitHub Notebook Anda]
+- **Notebook:** [GANTI DENGAN LINK KE NOTEBOOK GITHUB ANDA]
 """)
+
+# Coba muat model .pkl untuk memastikan library ada
+try:
+    joblib.load('model_pemenang_LGBM.pkl')
+    st.sidebar.success("Model .pkl berhasil dimuat.")
+except FileNotFoundError:
+    st.sidebar.warning("File model 'model_pemenang_LGBM.pkl' tidak ditemukan di repositori.")
+except Exception as e:
+    st.sidebar.error(f"Error memuat model .pkl: {e}")
